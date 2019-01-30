@@ -1,0 +1,60 @@
+.flipSwitch {
+    width: 100%;
+    border-radius: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+    position: relative;
+    border-radius: 10px;
+    background: #2d3035;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2);
+    /* text-shadow: 1px 1px 1px #191b1e; */
+    border: 1px solid #393F4D;
+}
+
+.flipSwitch input {
+    display: none;
+}
+
+.flipSwitch a {
+    transition: all 0.2s ease-out;
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    background: #4eb5e5 linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+}
+
+.flipSwitch input:nth-of-type(1):checked~a {
+    left: 0%;
+    border-radius: 10px 0 0 10px;
+}
+
+.flipSwitch input:nth-of-type(2):checked~a {
+    left: 50%;
+    border-radius: 0 10px 10px 0;
+}
+
+.flipSwitch input:checked+label {
+    background: none;
+    color: #393F4D;
+    /* text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); */
+}
+
+.flipSwitch label {
+    z-index: 1;
+    text-align: center;
+    flex-basis: 50%;
+    color: #fff;
+    font-weight: bold;
+    padding: .5rem;
+    margin: 0;
+    display: table-cell;
+    cursor: pointer;
+}
+
+/* Hide other toggle label */
+.flipSwitch input:not(:checked)+label {
+    opacity: .5;
+}

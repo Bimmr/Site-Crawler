@@ -1,0 +1,212 @@
+<!doctype html>
+<html>
+<head>
+    <title>Site Crawler</title>
+
+    <link rel="stylesheet" href="styles/libs/flip-switch.css">
+    <link rel="stylesheet" href="styles/libs/range-slider.css">
+    <link rel="stylesheet" href="styles/libs/checkbox.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+          integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="styles/popup.css">
+
+    <script src="js/libs/jquery-3.3.1.min.js"></script>
+    <script src="js/libs/jquery-ui.min.js"></script>
+
+    <script src="js/consts.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/crawl.js"></script>
+    <script src="js/download.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/popup.js"></script>
+
+</head>
+<body>
+<div id="title">
+    <h1>Site Crawler</h1>
+    <a href="#" id="menu-toggle">
+        <span class="bar top"></span>
+        <span class="bar middle"></span>
+        <span class="bar bottom"></span>
+    </a>
+</div>
+<div id="main" class="page">
+    <div class="title-wrapper">
+        <div class="item hoverable third main-website active">
+            <h4><i class="red fas fa-home"></i> Website</h4>
+        </div>
+        <div class="item hoverable third main-links">
+            <h4><i class="blue fas fa-link"></i> All Links</h4>
+        </div>
+        <div class="item hoverable third main-images">
+            <h4><i class="orange fas fa-file-image"></i> All Images</h4>
+        </div>
+    </div>
+    <div id="main-website" class="sub-page">
+        <div class="title-wrapper">
+            <div class="item hoverable half all-crawl">
+                <h4><i class="purple fas fa-expand"></i> Crawl All</h4>
+            </div>
+            <div class="item hoverable half all-download">
+                <h4><i class="green fas fa-download"></i> Download All</h4>
+            </div>
+        </div>
+        <div class="content">
+        </div>
+    </div>
+    <div id="main-links" class="sub-page">
+
+        <div class="title-wrapper">
+            <div class="item third hoverable all-select">
+                <h4><i class="blue fas fa-check-square"></i> Select All</h4>
+            </div>
+            <div class="item third hoverable all-test">
+                <h4><i class="purple fas fa-search-plus"></i> Test All</h4>
+            </div>
+            <div class="item third hoverable all-download">
+                <h4><i class="green fas fa-download"></i> Download All</h4>
+            </div>
+        </div>
+        <div class="content">
+        </div>
+    </div>
+    <div id="main-images" class="sub-page">
+
+        <div class="title-wrapper">
+            <div class="item half hoverable all-select">
+                <h4><i class="blue fas fa-check-square"></i> Select All</h4>
+            </div>
+            <div class="item half hoverable all-download">
+                <h4><i class="green fas fa-download"></i> Download All</h4>
+            </div>
+        </div>
+        <div class="content">
+        </div>
+    </div>
+</div>
+<div id="more" class="page">
+    <div class="title-wrapper">
+        <div class="item full">
+            <h4 class="pageTitle"></h4>
+            <p class="pageLink"></p>
+        </div>
+
+        <div class="item third hoverable more-back">
+            <h4><i class="red fas fa-backspace"></i> Back</h4>
+        </div>
+        <div class="item third hoverable more-links active">
+            <h4><i class="blue fas fa-link"></i> Links</h4>
+        </div>
+        <div class="item third hoverable more-images">
+            <h4><i class="orange fas fa-file-image"></i> Images</h4>
+        </div>
+
+    </div>
+    <div id="more-links" class="sub-page">
+        <div class="title-wrapper">
+            <div class="item third hoverable all-select">
+                <h4><i class="blue fas fa-check-square"></i> Select All</h4>
+            </div>
+            <div class="item third hoverable all-test">
+                <h4><i class="purple fas fa-search-plus"></i> Test All</h4>
+            </div>
+            <div class="item third hoverable all-download">
+                <h4><i class="green fas fa-download"></i> Download All</h4>
+            </div>
+        </div>
+        <div class="content">
+
+        </div>
+    </div>
+    <div id="more-images" class="sub-page">
+        <div class="title-wrapper">
+            <div class="item half hoverable all-select">
+                <h4><i class="blue fas fa-check-square"></i> Select All</h4>
+            </div>
+            <div class="item half hoverable all-download">
+                <h4><i class="green fas fa-download"></i> Download All</h4>
+            </div>
+        </div>
+        <div class="content">
+
+        </div>
+    </div>
+</div>
+<div id="menu" class="page">
+    <form>
+        <div class="optionsWrapper">
+            <h2>Localize Stylesheets</h2>
+            <div class="flipSwitch" id="localizeAllStyles">
+                <input type="radio" name="localizeAllStyles" id="localizeAllStyles-domain" value="false" checked>
+                <label for="localizeAllStyles-domain">Same Domain</label>
+
+                <input type="radio" name="localizeAllStyles" id="localizeAllStyles-all" value="true">
+                <label for="localizeAllStyles-all">All</label>
+
+                <a></a>
+
+            </div>
+        </div>
+        <div class="optionsWrapper">
+            <h2>Localize Scripts</h2>
+            <div class="flipSwitch" id="localizeAllScripts">
+                <input type="radio" name="localizeAllScripts" id="localizeAllScripts-domain" value="false" checked>
+                <label for="localizeAllScripts-domain">Same Domain</label>
+
+                <input type="radio" name="localizeAllScripts" id="localizeAllScripts-all" value="true">
+                <label for="localizeAllScripts-all">All</label>
+
+                <a></a>
+            </div>
+        </div>
+
+        <div class="optionsWrapper">
+            <h2>Sort Links</h2>
+            <div class="flipSwitch" id="autoSortLinks">
+                <input type="radio" name="autoSortLinks" id="autoSortLinks-true" value="true" checked>
+                <label for="autoSortLinks-true">On</label>
+
+                <input type="radio" name="autoSortLinks" id="autoSortLinks-false" value="false">
+                <label for="autoSortLinks-false">Off</label>
+
+                <a></a>
+            </div>
+        </div>
+        <div class="optionsWrapper">
+            <h2>Crawl On Open</h2>
+            <div class="flipSwitch" id="crawlOnOpen">
+                <input type="radio" name="crawlOnOpen" id="crawlOnOpen-true" value="true" checked>
+                <label for="crawlOnOpen-true">On</label>
+
+                <input type="radio" name="crawlOnOpen" id="crawlOnOpen-false" value="false">
+                <label for="crawlOnOpen-false">Off</label>
+
+                <a></a>
+            </div>
+        </div>
+        <div class="optionsWrapper">
+            <h2>Start At Root</h2>
+            <div class="flipSwitch" id="startAtRoot">
+                <input type="radio" name="startAtRoot" id="startAtRoot-true" value="true" checked>
+                <label for="startAtRoot-true">On</label>
+
+                <input type="radio" name="startAtRoot" id="startAtRoot-false" value="false">
+                <label for="startAtRoot-false">Off</label>
+
+                <a></a>
+            </div>
+        </div>
+
+
+        <div class="optionsWrapper">
+            <button class="full-width btn btn-center" id="menu-recrawl">Re-Crawl</button>
+        </div>
+    </form>
+</div>
+<div id="loadingOverlay">
+    <div class="text-wrapper"><h1><i class="loading fas fa-circle-notch fa-2x"></i></h1></div>
+</div>
+
+</body>
+</html>

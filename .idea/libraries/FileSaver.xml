@@ -1,0 +1,8 @@
+<component name="libraryTable">
+  <library name="FileSaver" type="javaScript">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/Libs/FileSaver.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
