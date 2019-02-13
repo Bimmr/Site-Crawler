@@ -227,6 +227,8 @@ function isAlreadyCrawled(link) {
  * @param callback
  */
 function createItemWithoutRequest(link, defaultItem, callback) {
+    let baseLink = link;
+
     let allLinks = [];
     let childrenLinks = [];
     let otherLinks = [];
@@ -256,9 +258,12 @@ function createItemWithoutRequest(link, defaultItem, callback) {
                     otherLinks.push(link);
                 if (!storage.allLinks.includes(link))
                     storage.allLinks.push(link);
+
+                addLinkLocation(link, baseLink);
             }
         }
     });
+
     item.images.forEach(link => {
         link = externalizeLink(link);
         if (link) {
@@ -269,6 +274,7 @@ function createItemWithoutRequest(link, defaultItem, callback) {
 
             if (!storage.allImages.includes(link))
                 storage.allImages.push(link);
+            addImageLocation(link, baseLink);
         }
 
     });
@@ -319,6 +325,7 @@ function createItem(link, callback) {
                         item.otherLinks.push(href);
                     if (!storage.allLinks.includes(href))
                         storage.allLinks.push(href);
+                    addLinkLocation(href, link);
                 }
             });
             $data.find('img').sort(sortLinkFileTypes).each(function () {
@@ -330,6 +337,7 @@ function createItem(link, callback) {
                     item.images.push(img);
                 if (!storage.allImages.includes(img))
                     storage.allImages.push(img);
+                addImageLocation(img, link);
             });
             item.images = item.images.sort(sortLinkFileTypes);
             item.otherLinks = item.otherLinks.sort(sortLinkFileTypes);

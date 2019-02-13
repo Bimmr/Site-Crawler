@@ -1,10 +1,12 @@
-var storage = {
+let storage = {
     crawledSite: [],
     allCrawledLinks: [],
     allImages: [],
     allLinks: [],
     savedScripts: {},
-    savedStyles: {}
+    savedStyles: {},
+    linkLocations: {},
+    imageLocations: {}
 };
 
 // ----------------- STORAGE -----------------
@@ -33,6 +35,9 @@ function loadStorage(key, callback) {
 }
 
 function saveStorage(key, value) {
+    console.log(key);
+    console.log(value);
+    console.log("-----");
     chrome.storage.local.set({[key]: value});
 }
 

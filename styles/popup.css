@@ -7,6 +7,9 @@ body {
     width: 500px;
     overflow-y: scroll;
 }
+.ui-tooltip {
+    white-space: pre-line;
+}
 
 /*------- HEADER -------*/
 #title {

@@ -14,6 +14,7 @@ let options = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    $(document).tooltip();
     console.log("Ready");
     setup();
 
@@ -29,7 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 Object.keys(options).forEach(item => setRadioButtonSelected(item, options[item]));
 
-                loadStorage(["crawledSite", "allCrawledLinks", "allImages", "allLinks", "savedScripts", "savedStyles"], saved => {
+                loadStorage([
+                    "crawledSite",
+                    "allCrawledLinks",
+                    "allImages",
+                    "allLinks",
+                    "savedScripts",
+                    "savedStyles",
+                    "linkLocations",
+                    "imageLocations"
+                ], saved => {
 
                     if (saved && saved["crawledSite"] && saved["crawledSite"].length > 0) {
 
@@ -44,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 storage.allImages = saved["allImages"];
                                 storage.savedScripts = saved["savedScripts"];
                                 storage.savedStyles = saved["savedStyles"];
+                                storage.linkLocations = saved["linkLocations"];
+                                storage.imageLocations = saved["imageLocations"];
+                                console.log(storage.linkLocations);
 
                                 hideLoading();
                                 updateMainHtml();
@@ -77,6 +90,10 @@ function init() {
 
     storage.crawledSite = [];
     storage.allCrawledLinks = [];
+    storage.allLinks = [];
+    storage.allImages = [];
+    storage.linkLocations = {};
+    storage.imageLocations = {};
 
     let url = new URL(tab[0].url);
     domain = url.origin;
@@ -326,7 +343,7 @@ function createMoreLinksHtml(link) {
         '<h4 class="item-icon">' + getLinksIcon(link) + '</h4>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + link + '" target="_blank" title="' + link + '">' + link + '</a></p>' +
+        '<p><a href="' + link + '" target="_blank">' + link + '</a></p>' +
         '</div>' +
         '<div class="options">\n';
     if (getLinksIcon(link).indexOf('file') >= 0)
@@ -336,8 +353,7 @@ function createMoreLinksHtml(link) {
         htmlString += '<a class="item-test" title="Test Link" href="#" >' + iconQuestion + '</a>';
     htmlString += '</div>' +
         '</div>' +
-        '</div>'
-    ;
+        '</div>';
     return htmlString;
 }
 
@@ -355,7 +371,7 @@ function createMoreImagesHtml(link) {
         '<img src="' + link + '" style="width:100%"/>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + link + '" target="_blank" title="' + link + '">' + link + '</a></p>' +
+        '<p><a href="' + link + '" target="_blank">' + link + '</a></p>' +
         '</div>' +
         '<div class="options" >' +
         '<a class="item-download" title="Download File" href="' + link + '" download>' + iconDownload + '</a>' +
@@ -368,7 +384,7 @@ function createMoreImagesHtml(link) {
 function setupMenuEvents() {
 
     $("#menu-recrawl").off().on('click', function () {
-        hideMenu();
+        $("#menu-toggle").click();
         init();
     });
 
@@ -443,8 +459,8 @@ function setupMainEvents() {
     });
     $mainLinks.find(".all-download").off().on('click', function (event) {
         event.preventDefault();
-        let items = $mainImages.find(".item-download");
-        if ($mainImages.find(".checkbox input:checked").length > 0) {
+        let items = $mainLinks.find(".item-download");
+        if ($mainLinks.find(".checkbox input:checked").length > 0) {
             items = items.filter(function () {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
@@ -542,11 +558,11 @@ function updateMainEvents() {
         e.preventDefault();
         testLink($(this));
     });
-    $mainLinks.find(".item-download").off().on('click', function(e){
+    $mainLinks.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
         chrome.downloads.download({url: this.href});
     });
-    $mainImages.find(".item-download").off().on('click', function(e){
+    $mainImages.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
         chrome.downloads.download({url: this.href});
     });
@@ -592,7 +608,7 @@ function createMainWebsiteHtml(item) {
         '<h4>' + item.title + '</h4>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + item.link + '" target="_blank" title="' + item.parentPath + item.path + '">' + item.path + '</a></p>' +
+        '<p><a href="' + item.link + '" target="_blank"  title="Found on:\n' + getLinks("linkLocations", item.link) + '">' + item.path + '</a></p>' +
         '</div>' +
         '</div>' +
         '<div class="options">\n';
@@ -629,7 +645,8 @@ function createMainLinksHtml(link) {
         '<h4 class="item-icon">' + getLinksIcon(link) + '</h4>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + link + '" target="_blank" title="' + link + '">' + link + '</a></p>' +
+        '<p><a href="' + link + '" target="_blank" title="Found on:\n' + getLinks("linkLocations", link) +
+        '">' + link + '</a></p>' +
         '</div>' +
         '<div class="options">\n';
     if (getLinksIcon(link).indexOf('file') >= 0)
@@ -642,6 +659,16 @@ function createMainLinksHtml(link) {
         '</div>'
     ;
     return htmlString;
+}
+
+function getLinks(location, link) {
+    let string = "";
+    if (storage[location][link])
+        storage[location][link].forEach(item => {
+            console.log(item);
+            string += '- ' + item + "\n";
+        });
+    return string;
 }
 
 function createMainImagesHtml(link) {
@@ -658,7 +685,8 @@ function createMainImagesHtml(link) {
         '<img src="' + link + '" style="width:100%"/>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + link + '" target="_blank" title="' + link + '">' + link + '</a></p>' +
+        '<p><a href="' + link + '" target="_blank" title="Found on:\n' + getLinks("imageLocations", link) +
+        '">' + link + '</a></p>' +
         '</div>' +
         '<div class="options" >' +
         '<a class="item-download" title="Download File" href="' + link + '" download>' + iconDownload + '</a>' +
@@ -668,6 +696,7 @@ function createMainImagesHtml(link) {
 }
 
 // ----------------- DISPLAYS -----------------
+
 // ----- MAIN -----
 function showMain(update) {
     if (update === undefined || update)
@@ -751,10 +780,10 @@ function hideLoading() {
 }
 
 
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
+String.prototype.replaceAll = function (search, replacement) {
+    let target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
 };
-RegExp.quote = function(str) {
+RegExp.quote = function (str) {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };

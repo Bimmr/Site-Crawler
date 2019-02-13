@@ -58,11 +58,11 @@ function hasProtocol(link) {
 }
 
 function onSameDomain(link) {
-    //try {
+    try {
     return link && new URL(updateProtocol(link)).origin === updateProtocol(domain);
-    //}catch(err){
-    //    return false;
-    //}
+    }catch(err){
+        return false;
+    }
 }
 
 /**
@@ -147,7 +147,7 @@ function sortLinkFileTypes(x, y) {
                 return 4;
             else if (file.indexOf('.jpg') !== -1 || file.indexOf('.jpeg') !== -1)
                 return 5;
-            else if (file.indexOf('mailto:') >= 0 || file.indexOf('fax:') >= 0 || file.indexOf('tel:') >= 0)
+            else if (file.indexOf('mailto:') >= 0 || file.indexOf('tel:') >= 0)
                 return 99;
             else
                 return 98;
@@ -156,26 +156,59 @@ function sortLinkFileTypes(x, y) {
     }
 }
 
+function addLinkLocation(link, location) {
+    if (storage.linkLocations[link]) {
+        if (!storage.linkLocations[link].includes(location)) {
+            storage.linkLocations[link].push(location);
+
+            saveStorage("linkLocations", storage.linkLocations);
+        }
+    } else {
+        storage.linkLocations[link] = [];
+        storage.linkLocations[link].push(location);
+
+        saveStorage("linkLocations", storage.linkLocations);
+    }
+}
+function addImageLocation(link, location) {
+    if (storage.imageLocations[link]) {
+        if (!storage.imageLocations[link].includes(location)) {
+            storage.imageLocations[link].push(location);
+
+            console.log(storage.imageLocations);
+            saveStorage("imageLocations", storage.imageLocations);
+        }
+    } else {
+        storage.imageLocations[link] = [];
+        storage.imageLocations[link].push(location);
+        saveStorage("imageLocations", storage.imageLocations);
+    }
+}
 
 function testLink($e) {
     $e.html(iconLoading);
     let link = $e.parent().parent().attr('data-link');
 
-    test(link, success => {
+    test(link, (success, e) => {
         if (success) {
             $e.html(iconCheck);
+            $e.prop('title', "Success");
         } else {
             $e.html(iconBroken);
+            $e.prop("title", e);
+            console.log(e);
         }
     });
 
     function test(link, callback) {
         $.get(link)
-            .done(result => {
+            .done((result) => {
                 callback(true, result);
             })
-            .fail(() => {
-                callback(false, null);
+            .fail((xhr, textStatus, errorThrown) => {
+            console.log(xhr);
+                console.log('STATUS: '+textStatus+'\nERROR THROWN: '+errorThrown);
+                callback(false, errorThrown);
             });
     }
 }
