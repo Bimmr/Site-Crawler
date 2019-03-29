@@ -204,16 +204,16 @@ body {
 }
 
 .purple{
-    color: #B10DC9;
+    color: #B10DC9 !important;
 }
 .red{
-    color: #FF4136;
+    color: #FF4136 !important;
 }
 .blue{
-    color: #2b8bc6;
+    color: #2b8bc6!important;
 }
 .green{
-    color: #2ECC40;
+    color: #2ECC40 !important;
 }
 .orange{
     color: #FF851B !important;

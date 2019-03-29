@@ -209,13 +209,15 @@ function updateGlobalEvents() {
         event.preventDefault();
     });
 
-    $(".checkbox span").off().on("click", function () {
+    $(".checkbox span").off().on("click", function (e) {
         let checkbox = $(this).prev();
         let check = !checkbox.is(':checked');
         let item = $(this).parent().parent();
-        let children = item.parent().find(".checkbox input").slice(1);
+        if(e.shiftKey) {
+            let children = item.parent().find(".checkbox input").slice(1);
 
-        children.prop("checked", check);
+            children.prop("checked", check);
+        }
     });
 }
 
@@ -699,6 +701,9 @@ function createMainImagesHtml(link) {
 
 // ----- MAIN -----
 function showMain(update) {
+
+    $(".checkbox input").prop("checked", false);
+
     if (update === undefined || update)
         updateMainHtml();
     $(".page").hide();
