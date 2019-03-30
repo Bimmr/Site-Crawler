@@ -308,43 +308,45 @@ function createItem(link, callback) {
     };
     $.get(link)
         .done(data => {
-            let $data = $(data);
+            try {
+                let $data = $(data);
 
-            $data.find('a').each(function () {
-                let href = $(this).attr('href');
-                href = externalizeLink(href);
-                if (href) {
-                    if (onSameDomain(href))
-                        href = updateProtocol(href);
-                    if (!item.allLinks.includes(href))
-                        item.allLinks.push(href);
+                $data.find('a').each(function () {
+                    let href = $(this).attr('href');
+                    href = externalizeLink(href);
+                    if (href) {
+                        if (onSameDomain(href))
+                            href = updateProtocol(href);
+                        if (!item.allLinks.includes(href))
+                            item.allLinks.push(href);
 
-                    if (isDomainBasedLink(href) && !isAlreadyCrawled(href) && isValidHTMLFileURL(href))
-                        item.childrenLinks.push(href);
-                    else if (!item.otherLinks.includes(href) && !storage.allCrawledLinks.includes(href))
-                        item.otherLinks.push(href);
-                    if (!storage.allLinks.includes(href))
-                        storage.allLinks.push(href);
-                    addLinkLocation(href, link);
-                }
-            });
-            $data.find('img').sort(sortLinkFileTypes).each(function () {
-                let img = $(this).attr('src');
-                img = externalizeLink(img);
-                if (onSameDomain(img))
-                    img = updateProtocol(img);
-                if (!item.images.includes(img))
-                    item.images.push(img);
-                if (!storage.allImages.includes(img))
-                    storage.allImages.push(img);
-                addImageLocation(img, link);
-            });
-            item.images = item.images.sort(sortLinkFileTypes);
-            item.otherLinks = item.otherLinks.sort(sortLinkFileTypes);
+                        if (isDomainBasedLink(href) && !isAlreadyCrawled(href) && isValidHTMLFileURL(href))
+                            item.childrenLinks.push(href);
+                        else if (!item.otherLinks.includes(href) && !storage.allCrawledLinks.includes(href))
+                            item.otherLinks.push(href);
+                        if (!storage.allLinks.includes(href))
+                            storage.allLinks.push(href);
+                        addLinkLocation(href, link);
+                    }
+                });
+                $data.find('img').sort(sortLinkFileTypes).each(function () {
+                    let img = $(this).attr('src');
+                    img = externalizeLink(img);
+                    if (onSameDomain(img))
+                        img = updateProtocol(img);
+                    if (!item.images.includes(img))
+                        item.images.push(img);
+                    if (!storage.allImages.includes(img))
+                        storage.allImages.push(img);
+                    addImageLocation(img, link);
+                });
+                item.images = item.images.sort(sortLinkFileTypes);
+                item.otherLinks = item.otherLinks.sort(sortLinkFileTypes);
 
-            item.title = $data.filter('title').text();
-            item.html = data;
-            item.$html = $data;
+                item.title = $data.filter('title').text();
+                item.html = data;
+                item.$html = $data;
+            }catch(exception){}
 
         }).fail(() => {
         item.title = "Broken Link";

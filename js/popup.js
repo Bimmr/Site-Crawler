@@ -10,7 +10,8 @@ let options = {
     'localizeAllScripts': 'false',
     'autoSortLinks': 'true',
     'startAtRoot': 'true',
-    'crawlOnOpen': 'false'
+    'crawlOnOpen': 'false',
+    'askWhereDownload': 'true'
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -263,13 +264,20 @@ function setupMoreEvents() {
         items.click();
     });
     $moreLinks.find(".all-download").on('click', function () {
-        let items = $moreImages.find(".item-download");
-        console.log(items);
-        if ($moreImages.find(".checkbox input:checked").length > 0) {
+        let items = $moreLinks.find(".item-download");
+        if ($moreLinks.find(".checkbox input:checked").length > 0) {
             items = items.filter(function () {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
+
+        // let i = 0;
+        // items.forEach(function(item){
+        //     if(i++ > 0)
+        //         askForSaveLocation = false;
+        //     this.click();
+        // });
+        // askForSaveLocation = true;
         items.click();
     });
     $moreImages.find(".all-download").on('click', function () {
@@ -280,6 +288,14 @@ function setupMoreEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
+
+        // let i = 0;
+        // items.forEach(function(item){
+        //     if(i++ > 0)
+        //         askForSaveLocation = false;
+        //     this.click();
+        // });
+        // askForSaveLocation = true;
         items.click();
     });
 
@@ -301,11 +317,11 @@ function updateMoreEvents() {
     });
     $moreLinks.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href});
+        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
     });
     $moreImages.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href});
+        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
     })
 }
 
@@ -424,8 +440,8 @@ function setupMainEvents() {
 
     $mainWebsite.find(".all-crawl").off().on('click', function (event) {
         event.preventDefault();
-        let items = $main.find(".item-crawl");
-        if ($main.find(".checkbox input:checked").length > 0) {
+        let items = $mainWebsite.find(".item-crawl");
+        if ($mainWebsite.find(".checkbox input:checked").length > 0) {
             items = items.filter(function () {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
@@ -434,12 +450,18 @@ function setupMainEvents() {
     });
     $mainWebsite.find(".all-download").off().on('click', function (event) {
         event.preventDefault();
-        let items = $main.find(".item-download");
-        if ($main.find(".checkbox input:checked").length > 0) {
+        let items = $mainWebsite.find(".item-download");
+        if ($mainWebsite.find(".checkbox input:checked").length > 0) {
             items = items.filter(function () {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
+        // let i = 0;
+        // items.each(function(){
+        //     askForSaveLocation = false;
+        //     this.click();
+        // });
+        // askForSaveLocation = true;
         items.click();
     });
     $mainLinks.find(".all-select").off().on('click', function (event) {
@@ -467,9 +489,18 @@ function setupMainEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-        items.each(function () {
-            this.click();
-        });
+        //
+        // let i = 0;
+        // items.each(function(){
+        //     if(i++ > 0)
+        //         askForSaveLocation = false;
+        //     this.click();
+        // });
+        // askForSaveLocation = true;
+        // items.each(function () {
+        //     this.click();
+        // });
+        items.click();
     });
 
     $mainImages.find(".all-download").off().on('click', function (event) {
@@ -480,9 +511,17 @@ function setupMainEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-        items.each(function () {
-            this.click();
-        });
+        // let i = 0;
+        // items.each(function(item){
+        //     if(i++ > 0)
+        //         askForSaveLocation = false;
+        //     this.click();
+        // });
+        // askForSaveLocation = true;
+        // items.each(function () {
+        //     this.click();
+        // });
+        items.click();
     });
     $mainImages.find(".all-select").off().on('click', function (event) {
         event.preventDefault();
@@ -551,7 +590,12 @@ function updateMainEvents() {
         localizeFile(parent.html, html => {
             let file = new Blob([html], {type: "html"});
             $a.html(iconDownload);
-            saveData(file, parent.title + ".html");
+            if(options.askWhereDownload == 'true') {
+                let url = URL.createObjectURL(file);
+                chrome.downloads.download({url: url, filename: parent.title + ".html", saveAs: options.askWhereDownload == 'true'});
+            }else
+                saveData(file, parent.title + ".html");
+
             $a.addClass('itemDownload');
         });
     });
@@ -562,11 +606,11 @@ function updateMainEvents() {
     });
     $mainLinks.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href});
+        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
     });
     $mainImages.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href});
+        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
     });
 
 }

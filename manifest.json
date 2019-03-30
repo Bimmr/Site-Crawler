@@ -1,7 +1,7 @@
 {
 
   "name": "Site Crawler",
-  "version": "1.1.7",
+  "version": "1.1.8",
 
   "description": "Crawl a website for a Sitemap, Links and Images.",
   "icons": {
