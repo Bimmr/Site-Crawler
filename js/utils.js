@@ -4,7 +4,7 @@
  * @returns {boolean}
  */
 function isValidHTMLFileURL(link) {
-    return link && link.indexOf('javascript:') === -1 && link.indexOf('#') === -1 && link.indexOf(".pdf") === -1 && link.indexOf(".doc") === -1;
+    return link && link.indexOf('javascript:') === -1 && link.indexOf('#') === -1 && getFileTypeId(link) == 98;
 }
 
 /**
@@ -20,6 +20,20 @@ function updateProtocol(link) {
     return link;
 }
 
+function getFileName(url){
+  let parts =  url.split("/");
+  let name = parts[parts.length -1];
+  for(let i = parts.length -1; i > 2; i--)
+    if(parts[i].indexOf(".") >= 0)
+    {
+      name = parts[i];
+      break;
+    }
+  if(name.indexOf(".") === -1)
+    name = name + ".jpg";
+  return name;
+}
+
 /**
  * Link is a special link
  * @param link
@@ -29,6 +43,21 @@ function isSpecialLink(link) {
     return link && (link.indexOf('mailto:') >= 0 || link.indexOf('tel:') >= 0);
 }
 
+function setOptions(name, value){
+  if($('input[name=' + name + ']')[0].type === 'radio')
+    setRadioButtonSelected(name, value)
+  else if($('input[name=' + name + ']')[0].type === 'text')
+    setTextInput(name, value);
+}
+
+/**
+ * Set input text
+ * @param name
+ * @param value
+ */
+function setTextInput(name, value){
+    $('input[name="' + name + '"]').val(value);
+}
 /**
  * Set Checked radio button
  * @param name
@@ -83,7 +112,8 @@ function externalizeLink(link) {
         if (link.lastIndexOf('/') === link.length - 1)
             link = link.substr(0, link.length - 1);
 
-        if (!isSpecialLink(link) && !hasProtocol(link))
+
+        if (!isSpecialLink(link) && !hasProtocol(link) && link.indexOf(domain)<0)
             if (link.indexOf('/') === 0 || link.indexOf('#') === 0)
                 link = domain + link;
             else
@@ -134,9 +164,11 @@ function sortLinkFileTypes(x, y) {
     let fileY = getFileTypeId(y);
 
     return fileX - fileY;
+}
 
     function getFileTypeId(file) {
-        if (file && file.length > 0)
+        if (file && file.length > 0){
+            file = file.toLowerCase();
             if (file.indexOf('.pdf') !== -1)
                 return 1;
             else if (file.indexOf('.doc') !== -1)
@@ -147,14 +179,16 @@ function sortLinkFileTypes(x, y) {
                 return 4;
             else if (file.indexOf('.jpg') !== -1 || file.indexOf('.jpeg') !== -1)
                 return 5;
+            else if (file.indexOf('.webp') !== -1)
+                return 6;
             else if (file.indexOf('mailto:') >= 0 || file.indexOf('tel:') >= 0)
                 return 99;
             else
                 return 98;
+              }
         else
             return 0;
     }
-}
 
 function addLinkLocation(link, location) {
     if (storage.linkLocations[link]) {
@@ -175,7 +209,6 @@ function addImageLocation(link, location) {
         if (!storage.imageLocations[link].includes(location)) {
             storage.imageLocations[link].push(location);
 
-            console.log(storage.imageLocations);
             saveStorage("imageLocations", storage.imageLocations);
         }
     } else {
@@ -192,23 +225,64 @@ function testLink($e) {
     test(link, (success, e) => {
         if (success) {
             $e.html(iconCheck);
-            $e.prop('title', "Success");
+            $e.prop('title', e);
         } else {
             $e.html(iconBroken);
-            $e.prop("title", e);
-            console.log(e);
+            $e.prop("title",  e);
         }
     });
 
+
     function test(link, callback) {
-        $.get(link)
-            .done((result) => {
-                callback(true, result);
-            })
-            .fail((xhr, textStatus, errorThrown) => {
-            console.log(xhr);
-                console.log('STATUS: '+textStatus+'\nERROR THROWN: '+errorThrown);
-                callback(false, errorThrown);
-            });
+      fetch(link).then(res => {return res;})
+      .then(res =>{
+      if(res.status == 200 || res.redirected)
+          callback(true, res.statusText);
+        else
+          callback(false, res.statusText);
+      }).catch(e=>{
+        fetch(byPassCORS(link)).then(res => {return res;})
+        .then(res =>{
+          if(res.status != 400 && res.status != 404)
+            callback(true, res.statusText);
+          else
+            callback(false, res.statusText);
+        }).catch(e=>{
+          callback(false, "Unable to reach");
+        });
+      });
     }
+}
+function updateProgress(percent){
+  let $prog = $(".progress");
+  let $bar = $prog.find(".progress-bar");
+  let barTransition = $bar.css("transition");
+  if($bar.css("width") > percent)
+    $bar.css("transition", "none");
+
+  $bar.css("width", percent+"%");
+  $bar.css("transition", barTransition);
+  if(percent >= 100)
+    $prog.hide();
+  else
+    $prog.show();
+}
+function byPassCORSIfNeeded(url){
+  if(!onSameDomain(url))
+    return byPassCORS(url);
+  return url;
+}
+function byPassCORS(url) {
+    return "https://cors-anywhere.herokuapp.com/" + url;
+}
+//delay and wait when typing
+function delay(callback, ms) {
+  var timer = 0;
+  return function() {
+    var context = this, args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      callback.apply(context, args);
+    }, ms || 0);
+  };
 }

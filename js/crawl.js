@@ -8,10 +8,9 @@
  */
 function recursiveCrawl(list, levels, crawlDeeper, singleCallback, allCallback) {
     let count = 0;
-    console.log("Crawl List");
-    console.log(list);
 
     list.forEach(item => {
+      updateProgress(list/count*100);
 
         crawl(item, 1, (item, level) => {
             count -= 1;
@@ -25,8 +24,6 @@ function recursiveCrawl(list, levels, crawlDeeper, singleCallback, allCallback) 
     });
 
     function crawl(item, level, callback) {
-        console.log("Crawl Item");
-        console.log(item);
         count += 1;
 
 
@@ -71,7 +68,13 @@ function recursiveAsListCopy(baseList) {
 }
 
 function crawlDeeper(parent, callback) {
+  let count = 0;
+
     createItems(parent.childrenLinks, item => {
+
+        count += 1;
+        var percent = count/parent.childrenLinks.length*100;
+        updateProgress(percent);
         addToCrawledSite(parent, item);
     }, (items) => {
         parent.childrenLinks = [];
@@ -276,7 +279,6 @@ function createItemWithoutRequest(link, defaultItem, callback) {
                 storage.allImages.push(link);
             addImageLocation(link, baseLink);
         }
-
     });
     item.images = images.sort(sortLinkFileTypes);
     item.allLinks = allLinks;
@@ -306,6 +308,8 @@ function createItem(link, callback) {
         images: []
 
     };
+
+    link = externalizeLink(link);
     $.get(link)
         .done(data => {
             try {
@@ -340,13 +344,37 @@ function createItem(link, callback) {
                         storage.allImages.push(img);
                     addImageLocation(img, link);
                 });
+
+
+                  Array.from($data.find("*").each(function(){
+                    if($(this).css("background-image")){
+                      let img = $(this).css("background-image");
+                      img = img.replace(/url\(\s*?['"]?/g, '')
+                               .replace(/\s*?['"]?\)/g, '');
+
+                      if (onSameDomain(img))
+                          img = updateProtocol(img);
+                      if (!item.images.includes(img))
+                          item.images.push(img);
+                      if (!storage.allImages.includes(img))
+                          storage.allImages.push(img);
+                      addImageLocation(img, link);
+                    }
+                  }));
+
+
+
+
+
                 item.images = item.images.sort(sortLinkFileTypes);
                 item.otherLinks = item.otherLinks.sort(sortLinkFileTypes);
 
                 item.title = $data.filter('title').text();
                 item.html = data;
                 item.$html = $data;
-            }catch(exception){}
+            }catch(exception){
+              console.log(exception);
+            }
 
         }).fail(() => {
         item.title = "Broken Link";

@@ -91,6 +91,15 @@ body {
     background: #0074D9 linear-gradient(rgba(255, 255, 255, 0.2), transparent);
 }
 
+#menu .optionsWrapper input[type=text] {
+  display: block;
+    width: 80%;
+    margin: 0 auto;
+    border-radius: 10px;
+    padding: .5rem;
+    text-align: center;
+    border-color: #0074D9;
+}
 /*------- COMPONENTS -------*/
 .page{
     position: absolute;
@@ -201,6 +210,23 @@ body {
 }
 .item-wrapper .children .item-wrapper{
     padding: 3px 0;
+}
+.searchfield{
+  padding: 5px 5px 5px 30px;
+  width: calc(calc(100% - 30px) - 0.5rem);
+}
+.searchfield-wrapper{
+  position: relative;
+}
+.searchfield-wrapper:before{
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  content: "\f002";
+  color: #777;
+  position: absolute;
+  top:50%;
+  transform: translateY(-50%);
+  left: calc(.5rem + 5px);
 }
 
 .purple{

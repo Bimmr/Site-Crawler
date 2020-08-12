@@ -11,7 +11,8 @@ let options = {
     'autoSortLinks': 'true',
     'startAtRoot': 'true',
     'crawlOnOpen': 'false',
-    'askWhereDownload': 'true'
+    'askWhereDownload': 'true',
+    'saveLocation': ''
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setupGlobalEvents();
             loadStorageOptions(() => {
 
-                Object.keys(options).forEach(item => setRadioButtonSelected(item, options[item]));
+                Object.keys(options).forEach(item => setOptions(item, options[item]));
 
                 loadStorage([
                     "crawledSite",
@@ -57,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 storage.savedStyles = saved["savedStyles"];
                                 storage.linkLocations = saved["linkLocations"];
                                 storage.imageLocations = saved["imageLocations"];
-                                console.log(storage.linkLocations);
 
                                 hideLoading();
                                 updateMainHtml();
@@ -148,7 +148,7 @@ function createContainerBase(url, callback) {
             '{title: document.getElementsByTagName("title")[0].innerHTML, ' +
             'html: document.documentElement.innerHTML, ' +
             'allLinks: Array.from(document.getElementsByTagName("a")).map(a => a.href), ' +
-            'images: Array.from(document.getElementsByTagName("img")).map(a => a.src)}; ' +
+            'images: Array.from(document.getElementsByTagName("img")).map(a => a.src) .concat( Array.from(document.querySelectorAll("*")) .reduce((collection, node) => { let prop = window.getComputedStyle(node, null) .getPropertyValue("background-image"); if (/url\(\s*?[\'"]?\s*?(\S+?)\s*?["\']?\s*?\)/i.exec(prop)) { prop = prop.replace(/url\(\s*?[\'"]?/g, "") .replace(/\s*?[\'"]?\)/g, ""); collection.push(prop); } return collection }, new Array()))}; ' +
             'temp'
         }, result => {
             let tempItem = result[0];
@@ -191,7 +191,7 @@ function createContainerBase(url, callback) {
 
             if (callback)
                 callback(null);
-            console.log('Unable to reach')
+            console.log('Unable to reach');
         });
     }
 }
@@ -215,9 +215,9 @@ function updateGlobalEvents() {
         let check = !checkbox.is(':checked');
         let item = $(this).parent().parent();
         if(e.shiftKey) {
-            let children = item.parent().find(".checkbox input").slice(1);
-
-            children.prop("checked", check);
+          e.preventDefault();
+          let children = item.parent().find(".checkbox input").slice(1);
+          children.prop("checked", check);
         }
     });
 }
@@ -270,32 +270,16 @@ function setupMoreEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-
-        // let i = 0;
-        // items.forEach(function(item){
-        //     if(i++ > 0)
-        //         askForSaveLocation = false;
-        //     this.click();
-        // });
-        // askForSaveLocation = true;
         items.click();
     });
     $moreImages.find(".all-download").on('click', function () {
         let items = $moreImages.find(".item-download");
-        console.log(items);
         if ($moreImages.find(".checkbox input:checked").length > 0) {
             items = items.filter(function () {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
 
-        // let i = 0;
-        // items.forEach(function(item){
-        //     if(i++ > 0)
-        //         askForSaveLocation = false;
-        //     this.click();
-        // });
-        // askForSaveLocation = true;
         items.click();
     });
 
@@ -317,11 +301,24 @@ function updateMoreEvents() {
     });
     $moreLinks.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
+
+        let url = this.href;
+        var name = getFileName(url);
+
+        var fileName = options.saveLocation.trim();
+        fileName = fileName + (fileName.lastIndexOf("/") !== fileName.length-1 ? "/":"") + name;
+        chrome.downloads.download({url: url, filename: fileName, saveAs: options.askWhereDownload == 'true'});
+
     });
     $moreImages.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
+
+        let url = this.href
+        var name = getFileName(url);
+
+        var fileName = options.saveLocation.trim();
+        fileName = fileName + (fileName.lastIndexOf("/") !== fileName.length-1 ? "/":"") + name;
+        chrome.downloads.download({url: url, filename: fileName, saveAs: options.askWhereDownload == 'true'});
     })
 }
 
@@ -418,8 +415,11 @@ function setupMenuEvents() {
 
     Object.keys(options).forEach(item => {
         $("#" + item).off().on("input", function () {
+          if($('input[name=' + item + ']')[0].type === 'radio')
             saveStorageOptions(item, $('input[name=' + item + ']:checked').val());
-        })
+          else if($('input[name=' + item + ']')[0].type === 'text')
+            saveStorageOptions(item, $('input[name=' + item + ']').val());
+        });
     });
 }
 
@@ -456,12 +456,6 @@ function setupMainEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-        // let i = 0;
-        // items.each(function(){
-        //     askForSaveLocation = false;
-        //     this.click();
-        // });
-        // askForSaveLocation = true;
         items.click();
     });
     $mainLinks.find(".all-select").off().on('click', function (event) {
@@ -471,7 +465,6 @@ function setupMainEvents() {
     });
 
     $mainLinks.find(".all-test").off().on('click', function (event) {
-        console.log(1);
         event.preventDefault();
         let items = $mainLinks.find(".item-test");
         if ($mainLinks.find(".checkbox input:checked").length > 0) {
@@ -489,20 +482,24 @@ function setupMainEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-        //
-        // let i = 0;
-        // items.each(function(){
-        //     if(i++ > 0)
-        //         askForSaveLocation = false;
-        //     this.click();
-        // });
-        // askForSaveLocation = true;
-        // items.each(function () {
-        //     this.click();
-        // });
         items.click();
     });
 
+    $mainLinks.find(".searchfield").off().on("keyup", delay(event => {
+      let searchText = $mainLinks.find(".searchfield").val();
+      $mainLinks.find(".item-wrapper").each((i,e) =>{
+          e = $(e);
+          if(searchText.length > 0){
+            if(e.find("a").text().toLowerCase().indexOf(searchText) < 0)
+              e.hide();
+            else
+              e.show();
+          }
+            else
+              e.show();
+        });
+
+    }, 500));
     $mainImages.find(".all-download").off().on('click', function (event) {
         event.preventDefault();
         let items = $mainImages.find(".item-download");
@@ -511,16 +508,6 @@ function setupMainEvents() {
                 return $(this).parent().parent().children(":first").children(":first").is(":checked");
             });
         }
-        // let i = 0;
-        // items.each(function(item){
-        //     if(i++ > 0)
-        //         askForSaveLocation = false;
-        //     this.click();
-        // });
-        // askForSaveLocation = true;
-        // items.each(function () {
-        //     this.click();
-        // });
         items.click();
     });
     $mainImages.find(".all-select").off().on('click', function (event) {
@@ -528,6 +515,22 @@ function setupMainEvents() {
         let items = $mainImages.find(".checkbox");
         items.click();
     });
+
+        $mainImages.find(".searchfield").off().on("keyup", delay(event => {
+          let searchText = $mainImages.find(".searchfield").val();
+          $mainImages.find(".item-wrapper").each((i,e) =>{
+              e = $(e);
+              if(searchText.length > 0){
+                if(e.find("a").text().toLowerCase().indexOf(searchText) < 0)
+                  e.hide();
+                else
+                  e.show();
+              }
+                else
+                  e.show();
+            });
+
+        }, 500));
 }
 
 function updateMainEvents() {
@@ -588,13 +591,21 @@ function updateMainEvents() {
         let link = $a.parent().parent().attr('data-link');
         let parent = findItem(storage.crawledSite, link);
         localizeFile(parent.html, html => {
-            let file = new Blob([html], {type: "html"});
+            let file = new Blob([html], {type: "plain/text"});
             $a.html(iconDownload);
-            if(options.askWhereDownload == 'true') {
+            //if(options.askWhereDownload == 'true') {
+              try{
                 let url = URL.createObjectURL(file);
-                chrome.downloads.download({url: url, filename: parent.title + ".html", saveAs: options.askWhereDownload == 'true'});
-            }else
-                saveData(file, parent.title + ".html");
+                var name = parent.title.trim().replace(/[^a-z0-9A-Z.]/gi, '_');
+                var fileName = options.saveLocation.trim();
+                fileName = fileName + (fileName.lastIndexOf("/") !== fileName.length-1 ? "/":"") + name;
+                chrome.downloads.download({url: url, filename: fileName+".html", saveAs: options.askWhereDownload == 'true'});
+              }catch(exception){
+                console.log(exception);
+                saveData(file, parent.title+".html");
+              }
+            //}else
+              //  saveData(file, parent.title + ".html");
 
             $a.addClass('itemDownload');
         });
@@ -606,11 +617,21 @@ function updateMainEvents() {
     });
     $mainLinks.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
+
+          let url = this.href
+          var name = getFileName(url).replace(/[^a-z0-9A-Z.]/gi, '_');
+          var fileName = options.saveLocation.trim();
+          fileName = fileName + (fileName.lastIndexOf("/") !== fileName.length-1 ? "/":"") + name;
+          chrome.downloads.download({url: url, filename: fileName, saveAs: options.askWhereDownload == 'true'});
     });
     $mainImages.find(".item-download").off().on('click', function (e) {
         e.preventDefault();
-        chrome.downloads.download({url: this.href, saveAs: options.askWhereDownload == 'true'});
+        let url = this.href
+        var name = getFileName(url).replace(/[^a-z0-9A-Z.]/gi, '_');;
+        var fileName = options.saveLocation.trim();
+        fileName = fileName + (fileName.lastIndexOf("/") !== fileName.length-1 ? "/":"") + name;
+        console.log(fileName);
+        chrome.downloads.download({url: url, filename: fileName, saveAs: options.askWhereDownload == 'true'});
     });
 
 }
@@ -654,7 +675,7 @@ function createMainWebsiteHtml(item) {
         '<h4>' + item.title + '</h4>' +
         '</div>' +
         '<div class="path wrap-text">' +
-        '<p><a href="' + item.link + '" target="_blank"  title="Found on:\n' + getLinks("linkLocations", item.link) + '">' + item.path + '</a></p>' +
+        '<p><a href="' + item.link + '" target="_blank"  title="'+item.parentPath+item.path+'\n\nFound on:\n' + getLinks("linkLocations", item.link) + '">' + item.path + '</a></p>' +
         '</div>' +
         '</div>' +
         '<div class="options">\n';
@@ -711,7 +732,6 @@ function getLinks(location, link) {
     let string = "";
     if (storage[location][link])
         storage[location][link].forEach(item => {
-            console.log(item);
             string += '- ' + item + "\n";
         });
     return string;

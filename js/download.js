@@ -1,4 +1,4 @@
-function localizeFile(html, callback) {
+async function localizeFile(html, callback) {
     console.log("Starting Localization");
     localizeStyles(html, html1 => {
         saveStorage("savedStyles", storage.savedStyles);
@@ -38,11 +38,13 @@ function localizeScripts(html, callback) {
             if (scriptString) {
                 scriptString = scriptString.replace(/\$/g, '$$$$');
                 let replace = new RegExp('(<[^>]+src\\s{0,2}=\s{0,2}[\"\']{0,1}' + original + '[^>]*><\/script>)|(<[^>]+src\\s{0,2}=\\s{0,2}[\"\']{0,1}' + original + '[^>]*>)<\/script>', 'g');
-               console.log(replace);
-               console.log(scriptString);
+
                 html = html.replace(replace, scriptString);
             }
 
+            console.log(count +" / "+scripts.length);
+            let percent = count/scripts.length*100;
+            updateProgress(percent);
             count += 1;
             if (count === scripts.length)
                 callback(html);
@@ -52,6 +54,7 @@ function localizeScripts(html, callback) {
         function getScriptsLocal(callback) {
             scripts.forEach(item => {
                 let original = item;
+                console.log(item);
 
                 item = externalizeLink(item);
 
@@ -104,12 +107,13 @@ function baseBackgroundUrl(html, callback) {
 
         let counted = 0;
 
-
         urls.forEach(item => {
             if (!isDomainBasedLink(item))
                 item = byPassCORS(item);
             toDataUrl(item, base64 => {
                 counted += 1;
+                let percent = counted/urls.length*100;
+                updateProgress(percent);
                 if (base64) {
                     html = html.replace(item, base64);
                 }
@@ -147,6 +151,8 @@ function baseImages(html, callback) {
                 item = byPassCORS(item);
             toDataUrl(item, base64 => {
                 counted += 1;
+                let percent = counted/imgs.length*100;
+                updateProgress(percent);
                 if (base64) {
                     html = html.replace(item, base64);
                 }
@@ -159,11 +165,11 @@ function baseImages(html, callback) {
     }
 }
 
-function byPassCORS(url) {
-    return "https://cors-escape.herokuapp.com/" + url;
-}
 
 function toDataUrl(url, callback) {
+    url = externalizeLink(url);
+    if(url.lastIndexOf(domain) != url.indexOf(domain))
+      url = url.substr(url.lastIndexOf(domain));
     let xhr = new XMLHttpRequest();
     xhr.onload = function () {
         let reader = new FileReader();
@@ -183,6 +189,21 @@ function toDataUrl(url, callback) {
 }
 
 function localizeStyles(html, callback) {
+  // console.log(html);
+  // var $html = $(html);
+  // var $styles = $html.find("link[rel=stylesheet]");
+  // $styles.each((i,item) => {
+  //   getStyleSheet(item);
+  // });
+  // console.log($html);
+  // callback($html.outerHTML);
+  // async function getStyleSheet(style){
+  //   let href = externalizeLink($(style).attr("href"));
+  //   let res = await fetch(href);
+  //   res = await res.text();
+  //   $(style).remove();
+  //   $html.find("head").append('<style data-url="'+href+'">'+res+'</style>');
+  // }
 
     html = html.replaceAll('&quot;', '"');
     //Turn all local style links to external links
@@ -214,6 +235,8 @@ function localizeStyles(html, callback) {
                 html = html.replace(replace, styleString);
             }
 
+            let percent = count/styles.length*100;
+            updateProgress(percent);
             count += 1;
             if (count === styles.length)
                 callback(html);
@@ -248,7 +271,7 @@ function localizeStyles(html, callback) {
                     });
                 }
             });
-        }
+       }
 
     }
 }

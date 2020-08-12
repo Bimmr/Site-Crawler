@@ -35,9 +35,6 @@ function loadStorage(key, callback) {
 }
 
 function saveStorage(key, value) {
-    console.log(key);
-    console.log(value);
-    console.log("-----");
     chrome.storage.local.set({[key]: value});
 }
 
